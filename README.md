@@ -1,5 +1,6 @@
-# U-boat-Upheaval
-A web based multiplayer game
+# Scanner System
+This is a system for managing scan in and scan outs for a library for a
+system with a barcode scanner.
 
 # Usage
 Clone this repository and run `npm install` in the server folder to install dependencies.
