@@ -7,11 +7,12 @@ const path = require('path');
 const fs = require('fs');
 const csvParse = require('csv-parse');
 const csvWriter = require('csv-writer');
-const { passwords } = require('./credentials.js');
+const { passwords, secret, certphrase } = require('./credentials.js');
 
 var options = {
   key: fs.readFileSync(`${__dirname}/keys/selfsigned.key`),
-  cert: fs.readFileSync(`${__dirname}/keys/selfsigned.crt`)
+  cert: fs.readFileSync(`${__dirname}/keys/selfsigned.crt`),
+  passphrase: certphrase
 };
 
 const students = {};
@@ -26,7 +27,7 @@ const logger = csvWriter.createArrayCsvWriter({
 });
 
 const sessionMiddleware = session({
-  secret: "test",
+  secret: secret,
   resave: true,
   saveUninitialized: true
 });
@@ -45,7 +46,6 @@ io.use((socket, next) => {sessionMiddleware(socket.request, {}, next);});
 app.post('/auth', (req, res) => {
   let username = req.body.usr;
   let password = crypto.createHash("sha256").update(req.body.psw).digest("base64");
-  console.log(password);
   if (username && password) {
     if (passwords[username] == password) {
       req.session.loggedin = true;
