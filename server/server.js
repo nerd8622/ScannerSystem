@@ -38,7 +38,7 @@ app.use(express.static(`${__dirname}/../client/static`));
 app.use(express.urlencoded({extended: true}));
 app.use(sessionMiddleware);
 
-const port = 8123;
+const port = 443;
 const server = https.createServer(options, app);
 const io = socketio(server);
 io.use((socket, next) => {sessionMiddleware(socket.request, {}, next);});

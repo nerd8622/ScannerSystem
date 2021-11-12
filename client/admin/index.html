@@ -4,19 +4,24 @@
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
-  <div class="container" style="margin:5vh 5vw; border: 1px solid black; padding:10px; height: 80vh;">
+  <div class="container" style="margin:5vh 5vw; border: 1px solid black; padding:10px; height: 80vh; overflow-y: auto;">
     <h1>Scanned In Students:</h1>
-    <table id="table">
-      <tr>
-        <th style="width:15%">Scan-In Time</th>
-        <th style="width:10%">ID</th>
-        <th>Last</th>
-        <th>First</th>
-      </tr>
-    </table>
+      <table id="table">
+          <thead>
+            <tr>
+              <th style="width:15%">Scan-In Time</th>
+              <th style="width:10%">ID</th>
+              <th>Last</th>
+              <th>First</th>
+            </tr>
+          </thead>
+          <tbody class="list">
+          </tbody>
+      </table>
   </div>
   <p>You can also download a full log: <a href="/download">Download</a></p>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/admin.js"></script>
+  <script src="/js/table.js"></script>
 </body>
 </html>

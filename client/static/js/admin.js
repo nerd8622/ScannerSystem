@@ -1,5 +1,5 @@
 const add = (data) => {
-  let row = table.insertRow(-1);
+  let row = table.getElementsByTagName('tbody')[0].insertRow(-1);
   let r1 = row.insertCell(0), r2 = row.insertCell(1), 
   r3 = row.insertCell(2), r4 = row.insertCell(3);
   r1.innerHTML = data[0], r2.innerHTML = data[1],
@@ -17,6 +17,10 @@ const sub = (id) => {
   }
 }
 
+const animate = () => {
+
+}
+
 (() => {
   const sock = io();
   const table = document.querySelector('#table');
@@ -25,7 +29,8 @@ const sub = (id) => {
 	for (let p of people){add(p);}
   });
   sock.on('in', (p) => {
-    add(p);
+    for(let i = 0; i<50; i++){
+    add(p);}
   });
   sock.on('out', (id) => {
     sub(id);
