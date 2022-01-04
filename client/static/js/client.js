@@ -1,9 +1,22 @@
+const play = () => {
+  document.querySelector(".checkmark").classList = "checkmark";
+  document.querySelector(".checkmark_check").className = "checkmark_check";
+  document.querySelector(".checkmark_circle").className = "checkmark_circle";
+
+  setTimeout(() => {
+    document.querySelector(".checkmark").className.baseVal = "checkmark checkmark_anim";
+    document.querySelector(".checkmark_check").className.baseVal = "checkmark_check checkmark_check_anim";
+    document.querySelector(".checkmark_circle").className.baseVal = "checkmark_circle checkmark_circle_anim";
+  }, 1)
+}
+
 const sendChat = (sock) => (e) => {
   e.preventDefault();
   const input = document.querySelector('#sid');
   const text = input.value;
   input.value = "";
   sock.emit(scantype, text);
+  play();
 };
 
 const setType = (e) => {
