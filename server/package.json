@@ -23,6 +23,8 @@
     "csv-writer": "^1.6.0",
     "express": "^4.17.1",
     "express-session": "^1.17.2",
+    "googleapis": "^92.0.0",
+    "node-schedule": "^2.1.0",
     "socket.io": "^4.3.1"
   }
 }

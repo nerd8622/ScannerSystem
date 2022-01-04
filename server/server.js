@@ -1,13 +1,16 @@
 const https = require('https');
 const crypto = require("crypto");
+const fs = require('fs');
 const express = require('express');
 const session = require('express-session');
 const socketio = require('socket.io');
 const path = require('path');
-const fs = require('fs');
+const schedule = require('node-schedule');
 const csvParse = require('csv-parse');
 const csvWriter = require('csv-writer');
-const { passwords, secret, certphrase } = require('./credentials.js');
+const { passwords, secret, certphrase, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+  GOOGLE_REDIRECT_URI, GOOGLE_REFRESH_TOKEN } = require('./credentials.js');
+const GoogleDrive = require('./gdrive.js');
 
 var options = {
   key: fs.readFileSync(`${__dirname}/keys/selfsigned.key`),
@@ -15,16 +18,43 @@ var options = {
   passphrase: certphrase
 };
 
+const driveClient = new GoogleDrive(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+  GOOGLE_REDIRECT_URI, GOOGLE_REFRESH_TOKEN);
+
 const students = {};
 const livestudents = {};
+
 fs.createReadStream(`${__dirname}/student_list.csv`).pipe(csvParse())
   .on('data', (data) => students[data[1]] = data.slice(2,4)).on('end', () => {
   console.log("loaded student database!")});
 
-const logger = csvWriter.createArrayCsvWriter({
-  path: `${__dirname}/scan_log.csv`,
-  header: ["TIME", "TYPE", "ID", "LAST", "FIRST"]
+let rule = new schedule.RecurrenceRule();
+rule.hour = 23;
+rule.minute = 59;
+rule.tz = "America/Denver";
+
+schedule.scheduleJob(rule, () => {
+  let day = new Date().toLocaleDateString('en-US', { timeZone: 'America/Denver' });
+  driveClient.copyFile("1L8s_8B6sI2agZ02y3vCbO5xI6wMpxyOZASeFqxG9M_g", day).then(
+    setTimeout(() => {  driveClient.clearSheet("1L8s_8B6sI2agZ02y3vCbO5xI6wMpxyOZASeFqxG9M_g"); }, 650));
+  console.log("Updated Log File for New Day")
 });
+
+const csvStringifier = csvWriter.createArrayCsvStringifier({
+  header: ["TIME", "TYPE", "ID", "LAST", "FIRST"],
+});
+
+fs.writeFile(`${__dirname}/scan_log.csv`, csvStringifier.getHeaderString(), (err) => {});
+
+const log = (id, type) => {
+  let time = new Date().toLocaleString('en-US', { timeZone: 'America/Denver' });
+  let data = [time, type, id, ...students[id]];
+  let logString = csvStringifier.stringifyRecords([data]);
+  fs.appendFile(`${__dirname}/scan_log.csv`, logString, (err) => {});
+  driveClient.appendSheet("1L8s_8B6sI2agZ02y3vCbO5xI6wMpxyOZASeFqxG9M_g", data);
+  console.log(`Event: ${time} | ${type} | ${id}`);
+  return [time, id, ...students[id]];
+};
 
 const sessionMiddleware = session({
   secret: secret,
@@ -85,17 +115,15 @@ io.on('connection', (sock) => {
   }
   sock.on('in', (id) => {
     if (!students[id]){return;}
-    let time = new Date().toUTCString();
-    logger.writeRecords([[time, "in", id, ...students[id]]]).then(() => {console.log(`Event: ${time} | in | ${id}`);});
+    let data = log(id, "in");
     if (!livestudents[id]){
-      livestudents[id] = [time, id, ...students[id]];
+      livestudents[id] = data;
       sock.to("admins").emit("in", livestudents[id]);
     }
 	});
 	sock.on('out', (id) => {
     if (!students[id]){return;}
-    let time = new Date().toUTCString();
-    logger.writeRecords([[time, "out", id, ...students[id]]]).then(() => {console.log(`Event: ${time} | out | ${id}`);});
+    log(id, "out");
 	  sock.to("admins").emit("out", id);
 	  delete livestudents[id];
 	});
